@@ -1,8 +1,9 @@
 #ignore raw data
-raw_data/*
+raw_data/trainp.csv
+raw_data/testp.csv
 
-#ignore intermediate data
 
+#ignore intermediate ouputs
 data_preparation/output/*
 grow_tree/output/*
 
