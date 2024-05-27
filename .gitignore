@@ -1,5 +1,5 @@
 #ignore raw data
-raw_input/*
+raw_data/*
 
 #ignore intermediate data
 
