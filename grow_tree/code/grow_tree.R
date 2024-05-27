@@ -3,7 +3,7 @@ library(dplyr)
 
 #import weighted and winsorized train data
 
-m_train_df = read.csv('../data/weighted_trainp.csv')
+m_train_df = read.csv(file.path('..","..","data_preparation","output","weighted_trainp.csv'))
 
 #create constant column for tree input
 
@@ -84,12 +84,16 @@ fit1 = TreeFactor_APTree(R_train, Y_train1, X_train, Z_train, H_train1, portfoli
                          num_months, min_leaf_size, max_depth, num_iter, num_cutpoints, eta, equal_weight, 
                          no_H, abs_normalize, weighted_loss, stop_no_gain, lambda, lambda)
 
+#get output portfolio
+
 pred_train = predict(fit1, X_train, R_train, months_train, portfolio_weight_train)
 
-write.csv(pred_train$leaf_index,"train_first_tree_leaf_index.csv",row.names=FALSE)
-#load weighted and winsorized test data
+write.csv(pred_train$leaf_index,file.path("..","output","train_first_tree_leaf_index.csv"),row.names=FALSE)
 
-m_test_df = read.csv('../data/weighted_testp.csv')
+
+#load weighted and winsorized test data
+m_test_df = read.csv(file.path("..","..","data_preparation","output","weighted_testp.csv"))
+
 X_test=m_test_df[,all_chars]
 R_test=m_test_df[,c("RET")]
 
@@ -99,6 +103,6 @@ months_test = as.numeric(as.factor(m_test_df[,c("date")]))
 months_test = months_test - 1 # start from 0
 
 pred = predict(fit1, X_test, R_test, months_test, portfolio_weight_test)
-write.csv(pred$portfolio,"test_first_tree.csv",row.names=FALSE)
-write.csv(pred$leaf_index,"test_first_tree_leaf_index.csv",row.names=FALSE)
+
+write.csv(pred$leaf_index,file.path("..","output","test_first_tree_leaf_index.csv"),row.names=FALSE)
 
