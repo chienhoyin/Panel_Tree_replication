@@ -1,0 +1,9 @@
+#ignore raw data
+raw_input/*
+
+#ignore intermediate data
+
+data_preparation/output/*
+grow_tree/output/*
+
+# End of https://www.gitignore.io/api/R, python
