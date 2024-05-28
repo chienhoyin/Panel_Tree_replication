@@ -6,8 +6,8 @@ raw_data/testp.csv
 #ignore intermediate outputs
 data_preparation/output/weighted_testp.csv
 data_preparation/output/weighted_trainp.csv
-grow_tree/output/test_tree_leaf_index
-grow_tree/output/train_tree_leaf_index
+grow_tree/output/test_tree_leaf_index.csv
+grow_tree/output/train_tree_leaf_index.csv
 
 
 
