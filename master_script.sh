@@ -1,6 +1,6 @@
 cd data_preparation/code
 
-python3 data_preparation.py 
+python3 data_prep.py 
 
 printf '\n data prepared \n' 
 
