@@ -6,5 +6,7 @@ raw_data/testp.csv
 #ignore intermediate ouputs
 data_preparation/output/*
 grow_tree/output/*
+table_preparation/output/*
+
 
 # End of https://www.gitignore.io/api/R, python
