@@ -52,7 +52,7 @@ def win(sample_df):
     
 
 if __name__ == "__main__":
-    
+    print(os.getcwd())
     #requst wrds for crsp data
     conn = wrds.Connection()
     crsp_df = conn.raw_sql("""select permno, date, prc, ret, shrout 
