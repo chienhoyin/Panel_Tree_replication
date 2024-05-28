@@ -3,7 +3,7 @@ library(dplyr)
 
 #set parameters for sample 1980-2000
 
-m_train_df = read.csv(file.path('..","..","data_preparation","output","weighted_trainp.csv'))
+m_train_df = read.csv(file.path("..","..","data_preparation","output","weighted_trainp.csv"))
 m_train_df['cons'] = 1 
 all_chars = paste0("f", 1:50)
 first_split_var = c(0:49)                                                       #variables that first split must happen on
