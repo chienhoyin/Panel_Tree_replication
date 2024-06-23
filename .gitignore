@@ -1,7 +1,7 @@
 #ignore raw data
 raw_data/trainp.csv
 raw_data/testp.csv
-
+raw_data/test_sample_df.csv
 
 #ignore intermediate outputs
 data_preparation/output/weighted_testp.csv
