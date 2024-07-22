@@ -9,14 +9,26 @@ import pandas as pd
 import statsmodels.api as sm
 import os
 
-def OLS(y,x):
+def OLS(y,X, error_type="HAC", lags=6):
     
-    X = sm.add_constant(x)
-    model = sm.OLS(y, X).fit()
+    X = sm.add_constant(X)
+    model = sm.OLS(y, X).fit(cov_type=error_type,cov_kwds={'maxlags':lags})
     
     return model
 
-def table(sample_df,leaf_index_df):
+def get_ff5(path):
+    
+    #import FF5 factors 
+    ff_factors_monthly = pd.read_csv(path,index_col=0)
+    ff_factors_monthly=ff_factors_monthly/100
+    ff_factors_monthly["date"] = pd.to_datetime(ff_factors_monthly.index, format="%Y%m")
+    ff_factors_monthly["year"]=pd.to_datetime(ff_factors_monthly["date"]).dt.year
+    ff_factors_monthly["month"]=pd.to_datetime(ff_factors_monthly["date"]).dt.month
+    ff_factors_monthly.drop(columns=["date"],inplace=True)
+    
+    return ff_factors_monthly
+    
+def table_1(sample_df,leaf_index_df,ff_df):
     
     #add leaf node to sample
     sample_df["leaf_node"]=leaf_index_df['V1']
@@ -36,16 +48,8 @@ def table(sample_df,leaf_index_df):
     port_n_df=sample_df.groupby(["leaf_node","date"])["PERMNO"].count().reset_index()
     port_n_median=port_n_df.groupby("leaf_node")["PERMNO"].median()
     
-    #import FF5 factors 
-    ff_factors_monthly = pd.read_csv(os.path.join("..","..","raw_data","F-F_Research_Data_5_Factors_2x3_adj.csv"),index_col=0)
-    ff_factors_monthly=ff_factors_monthly/100
-    ff_factors_monthly["date"] = pd.to_datetime(ff_factors_monthly.index, format="%Y%m")
-    ff_factors_monthly["year"]=pd.to_datetime(ff_factors_monthly["date"]).dt.year
-    ff_factors_monthly["month"]=pd.to_datetime(ff_factors_monthly["date"]).dt.month
-    ff_factors_monthly.drop(columns=["date"],inplace=True)
-    
     #merge leaf portfolio returns and factors
-    m_ret_df=pd.merge(port_ret_wide, ff_factors_monthly, on=["year","month"], how="left", validate="1:1")
+    m_ret_df=pd.merge(port_ret_wide, ff_df, on=["year","month"], how="left", validate="1:1")
 
     #calculate excess return
     for col in  ret_cols:
@@ -69,17 +73,20 @@ def table(sample_df,leaf_index_df):
   
 if __name__ == "__main__":
     
+    # Set current directory to the location of this script
+    os.chdir(os.path.dirname(os.path.abspath(__file__)))
+    
+    ff_factors_monthly=get_ff5(os.path.join("..","..","raw_data","F-F_Research_Data_5_Factors_2x3_adj.csv"))
     
     train_sample_df=pd.read_csv(os.path.join("..","..","data_preparation","output","weighted_trainp.csv"))
     train_leaf_index_df=pd.read_csv(os.path.join("..","..","grow_tree","output","train_tree_leaf_index.csv"))
-    train_table=table(train_sample_df,train_leaf_index_df)
-    train_table.to_csv(os.path.join("..","output","train_table_1.csv"))
+    train_table=table_1(train_sample_df,train_leaf_index_df,ff_factors_monthly)
+    train_table.to_csv(os.path.join("..","output","train_table_1_7_21_2024.csv"))
     
-    #prepare 
     test_sample_df=pd.read_csv(os.path.join("..","..","data_preparation","output","weighted_testp.csv"))
     test_leaf_index_df=pd.read_csv(os.path.join("..","..","grow_tree","output","test_tree_leaf_index.csv"))
-    test_table=table(test_sample_df,test_leaf_index_df)
-    test_table.to_csv(os.path.join("..","output","test_table_1.csv"))    
+    test_table=table_1(test_sample_df,test_leaf_index_df,ff_factors_monthly)
+    test_table.to_csv(os.path.join("..","output","test_table_1_7_21_2024.csv"))    
 
 
     
