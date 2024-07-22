@@ -13,3 +13,6 @@ printf '\n tree grown \n'
 cd ../../table_preparation/code
 
 python3 table_1.py 
+
+python3 table_2.py 
+
