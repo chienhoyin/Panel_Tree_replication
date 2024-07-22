@@ -6,7 +6,7 @@ printf '\n data prepared \n'
 
 cd ../../grow_tree/code
 
-Rscript grow_tree.R 
+Rscript Vanilla_Boosted.R
 
 printf '\n tree grown \n' 
 
