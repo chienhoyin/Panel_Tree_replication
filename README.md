@@ -8,7 +8,7 @@
 - Run master_script.sh (or you can run each individual script separately)
 
 # How to run Python/R scripts separately 
-- Run python3 data_preparation/code/data_prep.py 
-- Run Rscript grow_tree/code/Vanilla_Boosted.R
-- Run python3 table_preparation/code/table_1.py 
-- Run python3 table_preparation/code/table_2.py 
+- Run '''python3 data_preparation/code/data_prep.py'''
+- Run '''Rscript grow_tree/code/Vanilla_Boosted.R'''
+- Run '''python3 table_preparation/code/table_1.py'''
+- Run '''python3 table_preparation/code/table_2.py'''
