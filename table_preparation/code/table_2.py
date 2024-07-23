@@ -70,7 +70,7 @@ def table_2(f_factor_df,b_factors_df,ff_df,date_range):
     table_2_df["FF5_alpha_t"]=[OLS(b_factors_df[_],b_factors_df[["Mkt-RF","SMB","HML","RMW","CMA"]]).tvalues["const"] for _ in factors]
     table_2_df["EF_alpha"]=[OLS(b_factors_df[_],b_factors_df[[f for f in factors if f != _]]).params["const"] for _ in factors]
     table_2_df["EF_alpha_t"]=[OLS(b_factors_df[_],b_factors_df[[f for f in factors if f != _]]).tvalues["const"] for _ in factors]
-    table_2_df["EF_alpha_R2"]=[OLS(b_factors_df[_],b_factors_df[[f for f in factors if f != _]]).rsquared for _ in factors]
+    table_2_df["EF_R2"]=[OLS(b_factors_df[_],b_factors_df[[f for f in factors if f != _]]).rsquared for _ in factors]
     
     return table_2_df
 
@@ -81,7 +81,7 @@ if __name__ == "__main__":
         
     ff_factors_monthly=get_ff5(os.path.join("..","..","raw_data","F-F_Research_Data_5_Factors_2x3_adj.csv"))
 
-    f_factor_train_df=pd.read_csv(os.path.join("..","..","grow_tree","output","Vanilla_First_factor.csv"))
+    '''f_factor_train_df=pd.read_csv(os.path.join("..","..","grow_tree","output","Vanilla_First_factor.csv"))
     b_factors_train_df=pd.read_csv(os.path.join("..","..","grow_tree","output","Vanilla_Boosted_factors.csv"))
     date_range_train=get_date_range(os.path.join("..","..","data_preparation","output","weighted_trainp.csv"))
     table_2_train_df=table_2(f_factor_train_df,b_factors_train_df,ff_factors_monthly,date_range_train)
@@ -91,4 +91,11 @@ if __name__ == "__main__":
     b_factors_test_df=pd.read_csv(os.path.join("..","..","grow_tree","output","Vanilla_Boosted_factors_test.csv"))
     date_range_test=get_date_range(os.path.join("..","..","data_preparation","output","weighted_testp.csv"))
     table_2_test_df=table_2(f_factor_test_df,b_factors_test_df,ff_factors_monthly,date_range_test)
-    table_2_test_df.to_csv(os.path.join("..","output","test_table_2_7_21_2024.csv"))    
+    table_2_test_df.to_csv(os.path.join("..","output","test_table_2_7_21_2024.csv"))    '''
+    
+    f_factor_oos_df=pd.read_csv(os.path.join("..","..","grow_tree","output","Vanilla_First_factor_OOS.csv"))
+    b_factors_oos_df=pd.read_csv(os.path.join("..","..","grow_tree","output","Vanilla_Boosted_factors_OOS.csv"))
+    date_range_oos=get_date_range(os.path.join("..","..","data_preparation","output","weighted_testp.csv"))
+    table_2_oos_df=table_2(f_factor_oos_df,b_factors_oos_df,ff_factors_monthly,date_range_oos)
+    table_2_oos_df.to_csv(os.path.join("..","output","OOS_table_2_7_21_2024.csv"))    
+
