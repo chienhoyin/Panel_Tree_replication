@@ -23,12 +23,12 @@ for (j in 1:dim(Z)[2])
 # set work dir for debugging
 setwd("/mnt/work/hc2235/Panel_Tree_replication/grow_tree/code")
 
-all_chars <- paste0("f", 1:50)
-first_split_var <- c(0:49) # variables that first split must happen on
-second_split_var <- c(0:49) # variables that second split must happen on
+all_chars <- paste0("f", 1:3)
+first_split_var <- c(0:2) # variables that first split must happen on
+second_split_var <- c(0:2) # variables that second split must happen on
 min_leaf_size <- 20
-max_depth <- 10
-num_iter <- 9
+max_depth <- 3
+num_iter <- 2
 num_cutpoints <- 4
 equal_weight <- FALSE
 lambda <- 0.0001 # avoid matrix inversion error
@@ -39,7 +39,7 @@ weighted_loss <- TRUE # whether to apply loss weight
 stop_no_gain <- FALSE # stop splitting when no reduction in loss
 
 
-m_train_df = read.csv(file.path("..","..","data_preparation","output","weighted_trainp_loss_weight.csv"))
+m_train_df = read.csv(file.path("..","..","data_preparation","output","weighted_trainp_loss_weight_toy.csv"))
 m_train_df['cons'] = 1 
 X_train=m_train_df[,all_chars]                                                  #stock characters, long format
 R_train=m_train_df[,c("RET")]                                                   #return, long format
@@ -55,7 +55,7 @@ H_train1 = m_train_df[,c("cons")]                                               
 H_train1 = H_train1 * Z_train                                                   #no difference for no_H=TRUE
 
 
-m_test_df <- read.csv(file.path("..", "..", "data_preparation", "output", "weighted_testp_loss_weight.csv"))
+m_test_df <- read.csv(file.path("..", "..", "data_preparation", "output", "weighted_testp_loss_weight_toy.csv"))
 m_test_df["cons"] <- 1
 X_test <- m_test_df[, all_chars]
 R_test <- m_test_df[, c("RET")]

@@ -50,10 +50,19 @@ def win(sample_df):
 
     return sample_df
     
+def add_loss_weight(sample_df):
+    
+    weights=sample_df.groupby(["date"])["RET"].count()
+    weights=1/weights
+    weights.rename("loss_weight",inplace=True)
+    sample_df=pd.merge(left=sample_df,right=weights,left_on="date",right_index=True,how="left",validate="m:1")
+    
+    return sample_df
 
 if __name__ == "__main__":
 
     #requst wrds for crsp data
+
     conn = wrds.Connection()
     crsp_df = conn.raw_sql("""select permno, date, prc, ret, shrout 
                             from crsp.msf 
@@ -62,6 +71,7 @@ if __name__ == "__main__":
     crsp_df["month"]=pd.to_datetime(crsp_df["date"]).dt.month
 
     # truncate data before 1984 (too few stocks), standardize X, add weight, winsorize training sample
+
     train_df=pd.read_csv(os.path.join("..","..","raw_data","trainp.csv"))
     train_df["year"]=pd.to_datetime(train_df["date"]).dt.year
     train_df["month"]=pd.to_datetime(train_df["date"]).dt.month
@@ -69,6 +79,7 @@ if __name__ == "__main__":
     train_df=standardize_X(train_df)
     train_df=add_weight(train_df,crsp_df)
     train_df=win(train_df)
+    train_df=add_loss_weight(train_df)
     
     # truncate data before 1984 (too few stocks), standardize X, add weight, winsorize testing sample
     test_df=pd.read_csv(os.path.join("..","..","raw_data","testp.csv"))    
@@ -78,6 +89,18 @@ if __name__ == "__main__":
     test_df=standardize_X(test_df)
     test_df=add_weight(test_df,crsp_df)
     test_df=win(test_df)
+    test_df=add_loss_weight(test_df)
     
-    train_df.to_csv(os.path.join("..","output","weighted_trainp.csv"))
-    test_df.to_csv(os.path.join("..","output","weighted_testp.csv"))
+    
+    train_df.to_csv(os.path.join("..","output","weighted_trainp_loss_weight.csv"))
+    test_df.to_csv(os.path.join("..","output","weighted_testp_loss_weight.csv"))
+
+    #os.curdir="/mnt/work/hc2235/Panel_Tree_replication/data_preparation/code"
+    #train_df=pd.read_csv(os.path.join("..","output","weighted_trainp_loss_weight.csv"),index_col=0)
+    #test_df=pd.read_csv(os.path.join("..","output","weighted_testp_loss_weight.csv"),index_col=0)
+    
+    train_df_toy=train_df.drop(columns=[f"f{_}" for _ in range(4,51)])
+    test_df_toy=test_df.drop(columns=[f"f{_}" for _ in range(4,51)])
+    
+    train_df_toy.to_csv(os.path.join("..","output","weighted_trainp_loss_weight_toy.csv"))
+    test_df_toy.to_csv(os.path.join("..","output","weighted_testp_loss_weight_toy.csv"))    
