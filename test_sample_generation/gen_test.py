@@ -57,7 +57,7 @@ def filter_panel_by_node(node_row,sample_df,max_node):
         elif node_row[f"node_{parent_node_no}_parent"] == "right":
             temp_df=temp_df[~temp_df[f"split_{parent_node_no}"]]
             
-    return temp_df
+    return temp_df.index
 
 def split_panel(node_sample_df,feat,thres):
         
@@ -185,7 +185,7 @@ def gen_log(node_sample_df_index,port_df,ind,feat,thres,split,date_range,max_nod
     
 def gen_tree_mp(no_core,sample_df,n_period,n_stock,n_feat,thres_list,max_node,min_node_size,prior_tree_factors_df,lambda_mu,lambda_cov,abs_norm):
    
-    sample_df.sort_values(by=["date","PERMNO"],inplace=True)
+    #sample_df.sort_values(by=["date","PERMNO"],inplace=True)
     node_cols=[f"node_{i}_parent" for i in range(2*max_node-1)]
     tree_df=pd.DataFrame([[999,999,True]+["Irr"]*(2*max_node-1)], columns=["char","thres","leaf"]+node_cols)
     port_df=pd.DataFrame(index=sample_df["date"].unique())
@@ -214,14 +214,14 @@ def gen_tree_mp(no_core,sample_df,n_period,n_stock,n_feat,thres_list,max_node,mi
         #input_list=list(itertools.product(*[ind_node_sample_df_list,feat_list,thres_list,[[split]],[[date_range]],[[max_node]],[[min_node_size]],[[prior_tree_factors_df]],[[lambda_mu]],[[lambda_cov]],[[abs_norm]]]))
         #node_sample_df,ind,feat,thres,split,date_range,max_node,min_node_size,prior_tree_factors_df,lambda_mu,lambda_cov,abs_norm
         
-        #pool=mp.Pool(no_core)
-        #results=pool.starmap(gen_log,input_list)
-        #pool.close()
-        #pool.join()
-        results=[]
-        for inp in input_list:
-            res=gen_log(*inp)
-            results.append(res)
+        pool=mp.Pool(no_core)
+        results=pool.starmap(gen_log,input_list)
+        pool.close()
+        pool.join()
+        #results=[]
+        #for inp in input_list:
+        #    res=gen_log(*inp)
+        #    results.append(res)
         log_df=pd.concat([log_df]+results,ignore_index=True)
         
         '''for ind,row in tree_df[tree_df["leaf"]].iterrows():
@@ -384,7 +384,7 @@ if __name__ == "__main__":
     # Test 3: Using the actual training sample (toy version, only 3 feats) to grow a small boosted tree (only 3 nodes), check with C++ algo result  
     # result: success, discovered C++ code can't gen >=3 boosted trees, written mp code and checked result on toy sample with non-mp code
     
-    
+    '''
     np.random.seed(1234)
 
     sample_df=pd.read_csv("/mnt/work/hc2235/Panel_Tree_replication/test_sample_generation/weighted_trainp_loss_weight_toy.csv")
@@ -414,28 +414,28 @@ if __name__ == "__main__":
         tree_df_list.append(tree_df)
         log_df_list.append(log_df)
         port_df_list.append(port_df)
-    
+    '''
     print("stop")
     
     
     # Running the training sample using mp gen tree
-    '''
+    
     np.random.seed(1234)
 
-    #sample_df=pd.read_csv("/mnt/work/hc2235/Panel_Tree_replication/data_preparation/output/weighted_trainp_loss_weight.csv")
-    sample_df=pd.read_csv("/mnt/work/hc2235/Panel_Tree_replication/test_sample_generation/weighted_trainp_loss_weight_toy.csv")
+    sample_df=pd.read_csv("/mnt/work/hc2235/Panel_Tree_replication/data_preparation/output/weighted_trainp_loss_weight.csv")
+    #sample_df=pd.read_csv("/mnt/work/hc2235/Panel_Tree_replication/test_sample_generation/weighted_trainp_loss_weight_toy.csv")
     
     n_period = len(sample_df["date"].unique())
     n_stock = len(sample_df["PERMNO"].unique())   
-    n_feat = 3
+    n_feat = 50
     sample_df.rename(columns={f"f{_}":f"f{_-1}" for _ in range(1,n_feat+1)},inplace=True)
     thres_list = [-0.6,-0.2,0.2,0.6]
-    max_node = 3
+    max_node = 10
     min_node_size= 20
     lambda_mu=0.0001
     lambda_cov=0.0001
     abs_norm=True    
-    max_boost_no=4
+    max_boost_no=20
     
     
     prior_tree_factors_df=pd.DataFrame(index=sample_df["date"].unique())
@@ -445,7 +445,7 @@ if __name__ == "__main__":
     
     for boost_no in range(max_boost_no):
         #tree_df,log_df,port_df=gen_tree(sample_df.copy(),n_period,n_stock,n_feat,thres_list,max_node,min_node_size,prior_tree_factors_df,lambda_mu,lambda_cov,abs_norm)
-        tree_df,log_df,port_df=gen_tree_mp(1, sample_df.copy(),n_period,n_stock,n_feat,thres_list,max_node,min_node_size,prior_tree_factors_df,lambda_mu,lambda_cov,abs_norm)
+        tree_df,log_df,port_df=gen_tree_mp(30, sample_df.copy(),n_period,n_stock,n_feat,thres_list,max_node,min_node_size,prior_tree_factors_df,lambda_mu,lambda_cov,abs_norm)
         w,tree_factor=shrink_weight_factor(port_df,lambda_mu,lambda_cov,abs_norm,short_if_avg_neg=True)
         prior_tree_factors_df=pd.concat([prior_tree_factors_df,pd.DataFrame(tree_factor,columns=[boost_no])],axis=1)
         tree_df_list.append(tree_df)
@@ -456,7 +456,7 @@ if __name__ == "__main__":
         #log_df.to_csv(f"/mnt/work/hc2235/Panel_Tree_replication/grow_tree/output/Vanilla_Boosted_train_log_{boost_no}.csv")
         #port_df.to_csv(f"/mnt/work/hc2235/Panel_Tree_replication/grow_tree/output/Vanilla_Boosted_train_port_{boost_no}.csv")
         #prior_tree_factors_df.to_csv(f"/mnt/work/hc2235/Panel_Tree_replication/grow_tree/output/Vanilla_Boosted_train_factor_{boost_no}.csv")
-    '''
+    
     print("stop")
         
     
