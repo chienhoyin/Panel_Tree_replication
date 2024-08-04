@@ -169,7 +169,7 @@ def gen_log(node_sample_df_index,port_df,ind,feat,thres,split,date_range,max_nod
     right_port_ret=gen_port_ret(right_df)
     temp_port_df=pd.concat([left_port_ret,right_port_ret,port_df],axis=1)
     
-    w, tree_factor=shrink_weight_factor(temp_port_df,lambda_mu,lambda_cov,abs_norm)
+    w, tree_factor=shrink_weight_factor(temp_port_df,lambda_mu,lambda_cov,abs_norm,short_if_avg_neg=True)
     beta , sr = beta_Sharpe(pd.concat([tree_factor,prior_tree_factors_df],axis=1))
     cov = pd.concat([left_port_ret,right_port_ret],axis=1).cov()
     
@@ -270,6 +270,7 @@ def gen_tree(sample_df,n_period,n_stock,n_feat,thres_list,max_node,min_node_size
     
     #sample_df.sort_values(by=["date","PERMNO"],inplace=True)
     node_cols=[f"node_{i}_parent" for i in range(2*max_node-1)]
+    
     tree_df=pd.DataFrame([[999,999,True]+["Irr"]*(2*max_node-1)], columns=["char","thres","leaf"]+node_cols)
     port_df=pd.DataFrame(index=sample_df["date"].unique())
     feat_list=[f"f{_}" for _ in range(n_feat)]
@@ -341,7 +342,8 @@ def gen_tree(sample_df,n_period,n_stock,n_feat,thres_list,max_node,min_node_size
         print(split)
         
     return tree_df,log_df,port_df
-        
+
+
 
 if __name__ == "__main__":
     
@@ -416,7 +418,7 @@ if __name__ == "__main__":
         port_df_list.append(port_df)
     '''
     print("stop")
-    
+    '''
     
     # Running the training sample using mp gen tree
     
@@ -445,19 +447,59 @@ if __name__ == "__main__":
     
     for boost_no in range(max_boost_no):
         #tree_df,log_df,port_df=gen_tree(sample_df.copy(),n_period,n_stock,n_feat,thres_list,max_node,min_node_size,prior_tree_factors_df,lambda_mu,lambda_cov,abs_norm)
-        tree_df,log_df,port_df=gen_tree_mp(30, sample_df.copy(),n_period,n_stock,n_feat,thres_list,max_node,min_node_size,prior_tree_factors_df,lambda_mu,lambda_cov,abs_norm)
+        tree_df,log_df,port_df=gen_tree_mp(50, sample_df.copy(),n_period,n_stock,n_feat,thres_list,max_node,min_node_size,prior_tree_factors_df,lambda_mu,lambda_cov,abs_norm)
         w,tree_factor=shrink_weight_factor(port_df,lambda_mu,lambda_cov,abs_norm,short_if_avg_neg=True)
         prior_tree_factors_df=pd.concat([prior_tree_factors_df,pd.DataFrame(tree_factor,columns=[boost_no])],axis=1)
         tree_df_list.append(tree_df)
         log_df_list.append(log_df)
         port_df_list.append(port_df)
         print(f"Tree {boost_no} grown")
-        #tree_df.to_csv(f"/mnt/work/hc2235/Panel_Tree_replication/grow_tree/output/Vanilla_Boosted_train_tree_{boost_no}.csv")
-        #log_df.to_csv(f"/mnt/work/hc2235/Panel_Tree_replication/grow_tree/output/Vanilla_Boosted_train_log_{boost_no}.csv")
-        #port_df.to_csv(f"/mnt/work/hc2235/Panel_Tree_replication/grow_tree/output/Vanilla_Boosted_train_port_{boost_no}.csv")
-        #prior_tree_factors_df.to_csv(f"/mnt/work/hc2235/Panel_Tree_replication/grow_tree/output/Vanilla_Boosted_train_factor_{boost_no}.csv")
+        tree_df.to_csv(f"/mnt/work/hc2235/Panel_Tree_replication/grow_tree/output/Vanilla_Boosted_train_tree_{boost_no}.csv")
+        log_df.to_csv(f"/mnt/work/hc2235/Panel_Tree_replication/grow_tree/output/Vanilla_Boosted_train_log_{boost_no}.csv")
+        port_df.to_csv(f"/mnt/work/hc2235/Panel_Tree_replication/grow_tree/output/Vanilla_Boosted_train_port_{boost_no}.csv")
+        prior_tree_factors_df.to_csv(f"/mnt/work/hc2235/Panel_Tree_replication/grow_tree/output/Vanilla_Boosted_train_factor_{boost_no}.csv")
     
     print("stop")
-        
+    '''
     
+    #test 5: subtract RF from the original return data
+    
+       
+    np.random.seed(1234)
+
+    sample_df=pd.read_csv("/mnt/work/hc2235/Panel_Tree_replication/data_preparation/output/weighted_trainp_loss_weight_rf.csv")
+    #sample_df=pd.read_csv("/mnt/work/hc2235/Panel_Tree_replication/test_sample_generation/weighted_trainp_loss_weight_toy.csv")
+    
+    n_period = len(sample_df["date"].unique())
+    n_stock = len(sample_df["PERMNO"].unique())   
+    n_feat = 50
+    sample_df.rename(columns={f"f{_}":f"f{_-1}" for _ in range(1,n_feat+1)},inplace=True)
+    thres_list = [-0.6,-0.2,0.2,0.6]
+    max_node = 10
+    min_node_size= 20
+    lambda_mu=0.0001
+    lambda_cov=0.0001
+    abs_norm=True    
+    max_boost_no=20
+    
+    
+    prior_tree_factors_df=pd.DataFrame(index=sample_df["date"].unique())
+    tree_df_list=[]
+    log_df_list=[]
+    port_df_list=[]
+    
+    for boost_no in range(max_boost_no):
+        #tree_df,log_df,port_df=gen_tree(sample_df.copy(),n_period,n_stock,n_feat,thres_list,max_node,min_node_size,prior_tree_factors_df,lambda_mu,lambda_cov,abs_norm)
+        tree_df,log_df,port_df=gen_tree_mp(50, sample_df.copy(),n_period,n_stock,n_feat,thres_list,max_node,min_node_size,prior_tree_factors_df,lambda_mu,lambda_cov,abs_norm)
+        w,tree_factor=shrink_weight_factor(port_df,lambda_mu,lambda_cov,abs_norm,short_if_avg_neg=True)
+        prior_tree_factors_df=pd.concat([prior_tree_factors_df,pd.DataFrame(tree_factor,columns=[boost_no])],axis=1)
+        tree_df_list.append(tree_df)
+        log_df_list.append(log_df)
+        port_df_list.append(port_df)
+        print(f"Tree {boost_no} grown")
+        tree_df.to_csv(f"/mnt/work/hc2235/Panel_Tree_replication/grow_tree/output/Vanilla_Boosted_train_tree_{boost_no}_rf.csv")
+        log_df.to_csv(f"/mnt/work/hc2235/Panel_Tree_replication/grow_tree/output/Vanilla_Boosted_train_log_{boost_no}_rf.csv")
+        port_df.to_csv(f"/mnt/work/hc2235/Panel_Tree_replication/grow_tree/output/Vanilla_Boosted_train_port_{boost_no}_rf.csv")
+        prior_tree_factors_df.to_csv(f"/mnt/work/hc2235/Panel_Tree_replication/grow_tree/output/Vanilla_Boosted_train_factor_{boost_no}_rf.csv")
+     
     
