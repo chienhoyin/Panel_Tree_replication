@@ -59,7 +59,26 @@ def add_loss_weight(sample_df):
     
     return sample_df
 
+def subtract_rf(sample_df,ff_5_path):
+        
+    ff_factors_monthly = pd.read_csv(ff_5_path,index_col=0)
+    ff_factors_monthly=ff_factors_monthly/100
+    ff_factors_monthly["date"] = pd.to_datetime(ff_factors_monthly.index, format="%Y%m")
+    ff_factors_monthly["year"]=pd.to_datetime(ff_factors_monthly["date"]).dt.year
+    ff_factors_monthly["month"]=pd.to_datetime(ff_factors_monthly["date"]).dt.month
+    rf_df=ff_factors_monthly[["RF","year","month"]]
+    
+    #merge and subtract rf
+    sample_df=pd.merge(left=sample_df,right=rf_df,on=["year","month"],how="left",validate="m:1")
+    sample_df["RET"]=sample_df["RET"]-sample_df["RF"]
+    sample_df.drop(columns=["RF"],inplace=True)
+    
+    return sample_df
+
 if __name__ == "__main__":
+
+    # Set current directory to the location of this script
+    os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
     #requst wrds for crsp data
 
@@ -71,7 +90,7 @@ if __name__ == "__main__":
     crsp_df["month"]=pd.to_datetime(crsp_df["date"]).dt.month
 
     # truncate data before 1984 (too few stocks), standardize X, add weight, winsorize training sample
-
+    
     train_df=pd.read_csv(os.path.join("..","..","raw_data","trainp.csv"))
     train_df["year"]=pd.to_datetime(train_df["date"]).dt.year
     train_df["month"]=pd.to_datetime(train_df["date"]).dt.month
@@ -80,8 +99,10 @@ if __name__ == "__main__":
     train_df=add_weight(train_df,crsp_df)
     train_df=win(train_df)
     train_df=add_loss_weight(train_df)
+    train_df=subtract_rf(train_df,os.path.join("..","..","raw_data","F-F_Research_Data_5_Factors_2x3_adj.csv"))
     
-    # truncate data before 1984 (too few stocks), standardize X, add weight, winsorize testing sample
+    # truncate data before 2004 (too few stocks), standardize X, add weight, winsorize testing sample
+    
     test_df=pd.read_csv(os.path.join("..","..","raw_data","testp.csv"))    
     test_df["year"]=pd.to_datetime(test_df["date"]).dt.year
     test_df["month"]=pd.to_datetime(test_df["date"]).dt.month
@@ -90,17 +111,17 @@ if __name__ == "__main__":
     test_df=add_weight(test_df,crsp_df)
     test_df=win(test_df)
     test_df=add_loss_weight(test_df)
-    
-    
-    train_df.to_csv(os.path.join("..","output","weighted_trainp_loss_weight.csv"))
-    test_df.to_csv(os.path.join("..","output","weighted_testp_loss_weight.csv"))
+    test_df=subtract_rf(test_df,os.path.join("..","..","raw_data","F-F_Research_Data_5_Factors_2x3_adj.csv"))   
+ 
+    train_df.to_csv(os.path.join("..","output","weighted_trainp_loss_weight_rf.csv"))
+    test_df.to_csv(os.path.join("..","output","weighted_testp_loss_weight_rf.csv"))
 
     #os.curdir="/mnt/work/hc2235/Panel_Tree_replication/data_preparation/code"
     #train_df=pd.read_csv(os.path.join("..","output","weighted_trainp_loss_weight.csv"),index_col=0)
     #test_df=pd.read_csv(os.path.join("..","output","weighted_testp_loss_weight.csv"),index_col=0)
     
-    train_df_toy=train_df.drop(columns=[f"f{_}" for _ in range(4,51)])
-    test_df_toy=test_df.drop(columns=[f"f{_}" for _ in range(4,51)])
+    #train_df_toy=train_df.drop(columns=[f"f{_}" for _ in range(4,51)])
+    #test_df_toy=test_df.drop(columns=[f"f{_}" for _ in range(4,51)])
     
-    train_df_toy.to_csv(os.path.join("..","output","weighted_trainp_loss_weight_toy.csv"))
-    test_df_toy.to_csv(os.path.join("..","output","weighted_testp_loss_weight_toy.csv"))    
+    #train_df_toy.to_csv(os.path.join("..","output","weighted_trainp_loss_weight_toy.csv"))
+    #test_df_toy.to_csv(os.path.join("..","output","weighted_testp_loss_weight_toy.csv"))    
