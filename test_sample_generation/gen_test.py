@@ -8,7 +8,7 @@ import itertools
 from numba import jit
 import time
 
-def shrink_weight_factor(X,lambda_mu,lambda_cov,abs_norm,short_if_avg_neg=False):
+def shrink_weight_factor(X,lambda_mu,lambda_cov,abs_norm,short_if_avg_neg):
     
     k = X.shape[1]
     cov = X.cov(ddof=0)

@@ -98,4 +98,3 @@ if __name__ == "__main__":
     date_range_oos=get_date_range(os.path.join("..","..","data_preparation","output","weighted_testp.csv"))
     table_2_oos_df=table_2(f_factor_oos_df,b_factors_oos_df,ff_factors_monthly,date_range_oos)
     table_2_oos_df.to_csv(os.path.join("..","output","OOS_table_2_7_21_2024.csv"))    
-

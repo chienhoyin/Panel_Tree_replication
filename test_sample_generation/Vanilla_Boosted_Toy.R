@@ -130,15 +130,12 @@ for (i in 1:1) {
     #write.csv(fit1$portfolio, file.path("..", "output", "Vanilla_Boosted_port_0_loss_weight.csv"), row.names = FALSE)
     #write.csv(fit$portfolio, file.path("..", "output", "Vanilla_Boosted_port_1_loss_weight.csv"), row.names = FALSE)
     #write.csv(tree_factors_df_OOS, file.path("..", "output", "Vanilla_Boosted_factors_OOS.csv"), row.names = FALSE)
+    
 }
 
 #-----------------------------------------------------------------------
 #Repeat for sample 2000-2020
 
-fit2 = TreeFactor_APTree(R_test, Y_test1, X_test, Z_test, H_test1, portfolio_weight_test,
-                         loss_weight_test, stocks_test, months_test, first_split_var, second_split_var, num_stocks_test, 
-                         num_months_test, min_leaf_size, max_depth, num_iter, num_cutpoints, eta, equal_weight, 
-                         no_H, abs_normalize, weighted_loss, stop_no_gain, lambda, lambda)
 pred = predict(fit2, X_test, R_test, months_test, portfolio_weight_test)
 write.csv(pred$leaf_index,file.path("..","output","test_tree_leaf_index_7_21_2024.csv"),row.names=FALSE)
 
@@ -161,4 +158,6 @@ for (i in 1:20) {
     write.csv(tree_factors_df_test, file.path("..", "output", "Vanilla_Boosted_factors_test.csv"), row.names = FALSE)
 
 }
-
+for (i in 1:length(fit1$all_criterion)) {
+    write.csv(fit1$all_criterion[[i]], file.path("..", "output", paste0("full_training_sample_first_tree_criterion_split", i, ".csv")), row.names = FALSE)
+}
