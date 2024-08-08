@@ -58,18 +58,18 @@ max_boost_no=20
 lambda_mu=0.0001
 lambda_cov=0.0001
 
-'''
+#predict train sample for checking
+
 sample_df=pd.read_csv("/mnt/work/hc2235/Panel_Tree_replication/data_preparation/output/weighted_trainp_loss_weight_rf.csv",index_col=0)
 sample_df.rename(columns={f"f{_}":f"f{_-1}" for _ in range(1,n_feat+1)},inplace=True)
 tree_df_list=[pd.read_csv(f"/mnt/work/hc2235/Panel_Tree_replication/grow_tree/output/Vanilla_Boosted_train_tree_{_}_rf.csv",index_col=0) for _ in range(max_boost_no)]
 factors_df=pd.concat([construct_factor(tree_df_list[_], sample_df,max_node,True, True, "in-sample").rename(_) for _ in range(max_boost_no)],axis=1)         
 factors_df.to_csv("/mnt/work/hc2235/Panel_Tree_replication/grow_tree/output/Vanilla_Boosted_train_factor_rf.csv")
-'''
 
+#predict test sample
 
 test_sample_df=pd.read_csv("/mnt/work/hc2235/Panel_Tree_replication/data_preparation/output/weighted_testp_loss_weight_rf.csv",index_col=0)
 test_sample_df.rename(columns={f"f{_}":f"f{_-1}" for _ in range(1,n_feat+1)},inplace=True)
-tree_df_list=[pd.read_csv(f"/mnt/work/hc2235/Panel_Tree_replication/grow_tree/output/Vanilla_Boosted_train_tree_{_}_rf.csv",index_col=0) for _ in range(max_boost_no)]
-#factors_df=pd.concat([construct_factor(tree_df_list[_], train_sample_df,max_node,True, True).rename(_) for _ in range(max_boost_no)],axis=1)         
+tree_df_list=[pd.read_csv(f"/mnt/work/hc2235/Panel_Tree_replication/grow_tree/output/Vanilla_Boosted_train_tree_{_}_rf.csv",index_col=0) for _ in range(max_boost_no)]      
 factors_df=pd.concat([construct_factor(tree_df_list[_], test_sample_df,max_node,True, True).rename(_) for _ in range(max_boost_no)],axis=1)         
 factors_df.to_csv("/mnt/work/hc2235/Panel_Tree_replication/grow_tree/output/Vanilla_Boosted_OOS_factor_rf_8_7_2024.csv")
