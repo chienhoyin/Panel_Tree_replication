@@ -73,7 +73,6 @@ H_test1 <- H_test1 * Z_test
 
 #fit the first tree from training sample
 
-
 fit1 = TreeFactor_APTree(R_train, Y_train1, X_train, Z_train, H_train1, portfolio_weight_train,
                          loss_weight_train, stocks_train, months_train, first_split_var, second_split_var, num_stocks, 
                          num_months, min_leaf_size, max_depth, num_iter, num_cutpoints, eta, equal_weight, 
@@ -113,31 +112,31 @@ for (i in 1:20) {
 
 #-----------------------------------------------------------------------
 #Repeat for sample 2000-2020
-
-fit2 = TreeFactor_APTree(R_test, Y_test1, X_test, Z_test, H_test1, portfolio_weight_test,
-                         loss_weight_test, stocks_test, months_test, first_split_var, second_split_var, num_stocks_test, 
-                         num_months_test, min_leaf_size, max_depth, num_iter, num_cutpoints, eta, equal_weight, 
-                         no_H, abs_normalize, weighted_loss, stop_no_gain, lambda, lambda)
-pred = predict(fit2, X_test, R_test, months_test, portfolio_weight_test)
-write.csv(pred$leaf_index,file.path("..","output","test_tree_leaf_index_7_21_2024.csv"),row.names=FALSE)
-
-write.csv(fit2$ft, file.path("..", "output", "Vanilla_First_factor_test.csv"), row.names = FALSE)
+ 
+#fit2 = TreeFactor_APTree(R_test, Y_test1, X_test, Z_test, H_test1, portfolio_weight_test,
+#                         loss_weight_test, stocks_test, months_test, first_split_var, second_split_var, num_stocks_test, 
+#                         num_months_test, min_leaf_size, max_depth, num_iter, num_cutpoints, eta, equal_weight, 
+#                         no_H, abs_normalize, weighted_loss, stop_no_gain, lambda, lambda)
+#pred = predict(fit2, X_test, R_test, months_test, portfolio_weight_test)
+#write.csv(pred$leaf_index,file.path("..","output","test_tree_leaf_index_7_21_2024.csv"),row.names=FALSE)
+#
+#write.csv(fit2$ft, file.path("..", "output", "Vanilla_First_factor_test.csv"), row.names = FALSE)
 
 # fit boosted trees and output tree MVE portfolio (tree factor) returns for each tree (for table 2)
-Y_test_boost <- tf_residual(fit2, Y_test1, Z_test, H_test1, months_test, no_H) # initialize output variables as residuals from the first tree
-tree_factors_df_test <- matrix(fit2$ft, nrow = length(fit2$ft), ncol = 20, dimnames = list(NULL, paste0("ft", 1:20)))
+#Y_test_boost <- tf_residual(fit2, Y_test1, Z_test, H_test1, months_test, no_H) # initialize output variables as residuals from the first tree
+#tree_factors_df_test <- matrix(fit2$ft, nrow = length(fit2$ft), ncol = 20, dimnames = list(NULL, paste0("ft", 1:20)))
 
-for (i in 1:20) {
-    fit <- TreeFactor_APTree(
-        R_test, Y_test_boost, X_test, Z_test, H_test1, portfolio_weight_test,
-        loss_weight_test, stocks_test, months_test, first_split_var, second_split_var, num_stocks_test,
-        num_months_test, min_leaf_size, max_depth, num_iter, num_cutpoints, eta, equal_weight,
-        no_H, abs_normalize, weighted_loss, stop_no_gain, lambda, lambda
-    )
-    Y_test_boost <- tf_residual(fit, Y_test_boost, Z_test, H_test1, months_test, no_H)
-    print("tree grown")
-    tree_factors_df_test[, paste0("ft", i)] <- fit$ft
-    write.csv(tree_factors_df_test, file.path("..", "output", "Vanilla_Boosted_factors_test.csv"), row.names = FALSE)
+#for (i in 1:20) {
+#    fit <- TreeFactor_APTree(
+#        R_test, Y_test_boost, X_test, Z_test, H_test1, portfolio_weight_test,
+#        loss_weight_test, stocks_test, months_test, first_split_var, second_split_var, num_stocks_test,
+#        num_months_test, min_leaf_size, max_depth, num_iter, num_cutpoints, eta, equal_weight,
+#        no_H, abs_normalize, weighted_loss, stop_no_gain, lambda, lambda
+#    )
+#    Y_test_boost <- tf_residual(fit, Y_test_boost, Z_test, H_test1, months_test, no_H)
+#    print("tree grown")
+#    tree_factors_df_test[, paste0("ft", i)] <- fit$ft
+#    write.csv(tree_factors_df_test, file.path("..", "output", "Vanilla_Boosted_factors_test.csv"), row.names = FALSE)
 
-}
+#}
 
