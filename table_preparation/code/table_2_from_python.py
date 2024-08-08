@@ -8,6 +8,25 @@ import numpy as np
 import os
 import statsmodels.api as sm
 
+def shrink_weight_factor(X,lambda_mu,lambda_cov,abs_norm,short_if_avg_neg):
+    
+    k = X.shape[1]
+    cov = X.cov(ddof=0)
+    w = np.linalg.inv(np.array(cov) + lambda_cov * np.eye(k)) @ (np.array(X.mean()) + lambda_mu * np.ones(k))
+    
+    if abs_norm:
+        w = w / np.sum(np.abs(w))
+    else:
+        w = w / np.sum(w)
+        
+    f = X @ w
+  
+    if (short_if_avg_neg) and (np.sum(f)<0):
+        
+        f = -f       
+    
+    return w, f
+
 def OLS(y,X, error_type="HAC", lags=6):
     
     X = sm.add_constant(X)
@@ -107,7 +126,7 @@ def table_2_py(factors_df,ff_df):
     table_2_df["EF_alpha"]=[OLS(factors_df[_],factors_df[[f for f in factors if f != _]]).params["const"] for _ in factors]
     table_2_df["EF_alpha_t"]=[OLS(factors_df[_],factors_df[[f for f in factors if f != _]]).tvalues["const"] for _ in factors]
     table_2_df["EF_R2"]=[OLS(factors_df[_],factors_df[[f for f in factors if f != _]]).rsquared for _ in factors]
-    
+
     
 def table_2_py_OOS(train_factors_df,factors_df,ff_df):
     
@@ -116,7 +135,7 @@ def table_2_py_OOS(train_factors_df,factors_df,ff_df):
     
     factors_df=pd.merge(factors_df, ff_factors_monthly, on=["year","month"], how="left", validate="1:1")
 
-    factors=[str(_) for _ in range(20)]
+    factors=range(20)
     table_cols=["single_sharpe","cum_sharpe","capm_alpha","capm_alpha_t","FF5_alpha","FF5_alpha_t","EF_alpha","EF_alpha_t","EF_R2"]
     table_2_df=pd.DataFrame(index=factors,columns=table_cols)
 
@@ -125,8 +144,8 @@ def table_2_py_OOS(train_factors_df,factors_df,ff_df):
 
     table_2_df["single_sharpe"]=[Sharpe(factors_df[_])*(12**0.5) for _ in factors]
     #table_2_df["cum_sharpe"]=[Sharpe(factors_df[factors[:_+1]])*(12**0.5) for _ in range(len(factors))]
-    betas=[beta(train_factors_df[_]) for _ in range(len(factors))]
-    table_2_df["cum_sharpe"]=[Sharpe(pd.DataFrame(factors_df[factors[:_+1]]) @ betas[:_+1] )*(12**0.5) for _ in range(len(factors))]
+    betas=[beta(train_factors_df.iloc[:,:_+1]) for _ in range(len(factors))]
+    table_2_df["cum_sharpe"]=[Sharpe(pd.DataFrame(factors_df[factors[:_+1]]) @ betas[_] )*(12**0.5) for _ in range(len(factors))]
     table_2_df["capm_alpha"]=[OLS(factors_df[_],factors_df["Mkt-RF"]).params["const"] for _ in factors]
     table_2_df["capm_alpha_t"]=[OLS(factors_df[_],factors_df["Mkt-RF"]).tvalues["const"] for _ in factors]
     table_2_df["FF5_alpha"]=[OLS(factors_df[_],factors_df[["Mkt-RF","SMB","HML","RMW","CMA"]]).params["const"] for _ in factors]
@@ -151,10 +170,12 @@ if __name__ == "__main__":
     factor_train_df=pd.read_csv(os.path.join("..","..","grow_tree","output","Vanilla_Boosted_train_factor_19_rf.csv"),index_col=0).sort_index()
     factor_train_df.columns=factor_train_df.columns.astype(int)
     
-    factor_OOS_df=pd.read_csv(os.path.join("..","..","grow_tree","output","Vanilla_Boosted_OOS_factor_rf.csv"),index_col=0).sort_index()
-    table_2_OOS_df=table_2_py_OOS(factor_train_df,factor_OOS_df,ff_factors_monthly)
-    table_2_OOS_df.to_csv(os.path.join("..","output","OOS_table_2_8_4_2024.csv"))  
+    factor_OOS_df=pd.read_csv(os.path.join("..","..","grow_tree","output","Vanilla_Boosted_OOS_factor_rf_8_7_2024.csv"),index_col=0).sort_index()
+    factor_OOS_df.columns=factor_OOS_df.columns.astype(int)
     
+    table_2_OOS_df=table_2_py_OOS(factor_train_df,factor_OOS_df,ff_factors_monthly)
+    #table_2_OOS_df=table_2_py_OOS(factor_train_df,factor_OOS_df,ff_factors_monthly)
+    table_2_OOS_df.to_csv(os.path.join("..","output","OOS_table_2_8_7_2024.csv"))  
     
     print("stop")
     '''

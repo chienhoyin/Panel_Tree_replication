@@ -116,10 +116,6 @@ if __name__ == "__main__":
     train_df.to_csv(os.path.join("..","output","weighted_trainp_loss_weight_rf.csv"))
     test_df.to_csv(os.path.join("..","output","weighted_testp_loss_weight_rf.csv"))
 
-    #os.curdir="/mnt/work/hc2235/Panel_Tree_replication/data_preparation/code"
-    #train_df=pd.read_csv(os.path.join("..","output","weighted_trainp_loss_weight.csv"),index_col=0)
-    #test_df=pd.read_csv(os.path.join("..","output","weighted_testp_loss_weight.csv"),index_col=0)
-    
     #train_df_toy=train_df.drop(columns=[f"f{_}" for _ in range(4,51)])
     #test_df_toy=test_df.drop(columns=[f"f{_}" for _ in range(4,51)])
     
